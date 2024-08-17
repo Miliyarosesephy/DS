@@ -1,4 +1,4 @@
-//program for linear search
+//program for bubblesort
 //MILIYA ROSE SEPHY
 //Roll no:39
 #include<stdio.h>
