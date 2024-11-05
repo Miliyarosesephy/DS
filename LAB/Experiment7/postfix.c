@@ -1,87 +1,109 @@
+// C program to evaluate value of a postfix expression
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define MAX 100
+// Stack type
+struct Stack {
+	int top;
+	unsigned capacity;
+	int* array;
+};
 
-int stack[MAX];
-int top = -1;
+// Stack Operations
+struct Stack* createStack(unsigned capacity)
+{
+	struct Stack* stack
+		= (struct Stack*)malloc(sizeof(struct Stack));
 
-void push(int x);
-int pop();
-int evaluatePostfix(char* postfix);
-int isDigit(char ch);
+	if (!stack)
+		return NULL;
 
-int main() {
-    char postfix[MAX];
-    
-    printf("Enter a postfix expression: ");
-    fgets(postfix, MAX, stdin);
-    
-    printf("Result of postfix evaluation: %d\n", evaluatePostfix(postfix));
-    
-    return 0;
+	stack->top = -1;
+	stack->capacity = capacity;
+	stack->array
+		= (int*)malloc(stack->capacity * sizeof(int));
+
+	if (!stack->array)
+		return NULL;
+
+	return stack;
 }
 
-void push(int x) {
-    if (top < MAX - 1) {
-        stack[++top] = x;
-    } else {
-        printf("Error: Stack overflow\n");
-    }
+int isEmpty(struct Stack* stack)
+{
+	return stack->top == -1;
 }
 
-int pop() {
-    if (top >= 0) {
-        return stack[top--];
-    } else {
-        printf("Error: Stack underflow\n");
-        return -1;
-    }
+char peek(struct Stack* stack)
+{
+	return stack->array[stack->top];
 }
 
-int isDigit(char ch) {
-    if (ch >= '0' && ch <= '9') {
-        return 1;
-    }
-    return 0;
+char pop(struct Stack* stack)
+{
+	if (!isEmpty(stack))
+		return stack->array[stack->top--];
+	return '$';
 }
 
-int evaluatePostfix(char* postfix) {
-    int i = 0, op1, op2;
-    
-    while (postfix[i] != '\0' && postfix[i] != '\n') {
-        if (isDigit(postfix[i])) {
-            push(postfix[i] - '0');
-        } else {
-            op2 = pop();
-            op1 = pop();
-            
-            switch (postfix[i]) {
-                case '+':
-                    push(op1 + op2);
-                    break;
-                case '-':
-                    push(op1 - op2);
-                    break;
-                case '*':
-                    push(op1 * op2);
-                    break;
-                case '/':
-                    if (op2 != 0) {
-                        push(op1 / op2);
-                    } else {
-                        printf("Error: Division by zero\n");
-                        return -1;
-                    }
-                    break;
-                default:
-                    printf("Error: Invalid operator '%c'\n", postfix[i]);
-                    return -1;
-            }
-        }
-        i++;
-    }
-    
-    return pop();
+void push(struct Stack* stack, char op)
+{
+	stack->array[++stack->top] = op;
 }
 
+// The main function that returns value 
+// of a given postfix expression
+int evaluatePostfix(char* exp)
+{
+	// Create a stack of capacity equal to expression size
+	struct Stack* stack = createStack(strlen(exp));
+	int i;
+
+	// See if stack was created successfully
+	if (!stack)
+		return -1;
+
+	// Scan all characters one by one
+	for (i = 0; exp[i]; ++i) {
+		
+		// If the scanned character is an operand 
+		// (number here), push it to the stack.
+		if (isdigit(exp[i]))
+			push(stack, exp[i] - '0');
+
+		// If the scanned character is an operator, 
+		// pop two elements from stack apply the operator
+		else {
+			int val1 = pop(stack);
+			int val2 = pop(stack);
+			switch (exp[i]) {
+			case '+':
+				push(stack, val2 + val1);
+				break;
+			case '-':
+				push(stack, val2 - val1);
+				break;
+			case '*':
+				push(stack, val2 * val1);
+				break;
+			case '/':
+				push(stack, val2 / val1);
+				break;
+			}
+		}
+	}
+	return pop(stack);
+}
+
+// Driver code
+int main()
+{
+	char exp[] = "231*+9-";
+
+	// Function call
+	printf("postfix evaluation: %d", evaluatePostfix(exp));
+	return 0;
+}
 
